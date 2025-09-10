@@ -57,12 +57,62 @@ const Transactions = () => {
     let filtered = [...transactions];
 
     // Search filter
+// Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(t => {
+        const matchesDescription = t.description.toLowerCase().includes(searchLower);
+        const matchesCategory = t.category.toLowerCase().includes(searchLower);
+        const matchesAmount = Math.abs(t.amount).toString().includes(searchLower);
+        const matchesFormattedAmount = `$${Math.abs(t.amount).toFixed(2)}`.includes(searchLower);
+        
+        return matchesDescription || matchesCategory || matchesAmount || matchesFormattedAmount;
+      });
+    }
+
+    // Apply date range filter
+    if (filters.startDate || filters.endDate) {
+      filtered = filtered.filter(t => {
+        const transactionDate = new Date(t.date);
+        const startDate = filters.startDate ? new Date(filters.startDate) : null;
+        const endDate = filters.endDate ? new Date(filters.endDate) : null;
+        
+        let dateMatches = true;
+        if (startDate) {
+          dateMatches = dateMatches && transactionDate >= startDate;
+        }
+        if (endDate) {
+          // Set end date to end of day for inclusive filtering
+          const endOfDay = new Date(endDate);
+          endOfDay.setHours(23, 59, 59, 999);
+          dateMatches = dateMatches && transactionDate <= endOfDay;
+        }
+        
+        return dateMatches;
+      });
+    }
+
+    // Apply amount range filter
+    if (filters.minAmount || filters.maxAmount) {
+      filtered = filtered.filter(t => {
+        const amount = Math.abs(t.amount);
+        const minAmount = filters.minAmount ? parseFloat(filters.minAmount) : 0;
+        const maxAmount = filters.maxAmount ? parseFloat(filters.maxAmount) : Infinity;
+        
+        return amount >= minAmount && amount <= maxAmount;
+      });
+    }
+
+    // Apply category filter
+    if (filters.categories && filters.categories.length > 0) {
       filtered = filtered.filter(t => 
-        t.description.toLowerCase().includes(searchLower) ||
-        t.category.toLowerCase().includes(searchLower)
+        filters.categories.includes(t.category)
       );
+    }
+
+    // Apply transaction type filter
+    if (filters.type) {
+      filtered = filtered.filter(t => t.type === filters.type);
     }
 
     // Category filter
