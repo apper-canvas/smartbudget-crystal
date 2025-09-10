@@ -57,8 +57,7 @@ class BudgetService {
     this.data.splice(index, 1);
     return deletedBudget;
   }
-
-  // Additional utility methods
+// Additional utility methods
   async getByMonth(month, year) {
     await new Promise(resolve => setTimeout(resolve, this.delay));
     return this.data
@@ -70,6 +69,13 @@ class BudgetService {
     await new Promise(resolve => setTimeout(resolve, this.delay));
     return this.data
       .filter(budget => budget.category === category)
+      .map(budget => ({ ...budget }));
+  }
+
+  async getCurrentBudgets(month, year) {
+    await new Promise(resolve => setTimeout(resolve, this.delay));
+    return this.data
+      .filter(budget => budget.month === month && budget.year === year)
       .map(budget => ({ ...budget }));
   }
 }

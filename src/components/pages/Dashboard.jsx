@@ -1,10 +1,16 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import DashboardStats from "@/components/organisms/DashboardStats";
 import SpendingChart from "@/components/organisms/SpendingChart";
 import TrendChart from "@/components/organisms/TrendChart";
 import RecentTransactions from "@/components/organisms/RecentTransactions";
-
+import { notificationService } from "@/services/api/notificationService";
 const Dashboard = () => {
+  useEffect(() => {
+    // Check for budget alerts when dashboard loads
+    notificationService.checkBudgetAlerts();
+  }, []);
+
   return (
     <div className="space-y-6">
       <motion.div

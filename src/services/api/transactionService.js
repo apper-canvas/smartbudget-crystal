@@ -1,4 +1,5 @@
 import transactions from "@/services/mockData/transactions.json";
+import { notificationService } from '@/services/api/notificationService';
 
 class TransactionService {
   constructor() {
@@ -20,7 +21,7 @@ class TransactionService {
     return { ...transaction };
   }
 
-  async create(transaction) {
+async create(transaction) {
     await new Promise(resolve => setTimeout(resolve, this.delay));
     
     const maxId = Math.max(...this.data.map(item => item.Id), 0);
@@ -31,6 +32,12 @@ class TransactionService {
     };
     
     this.data.push(newTransaction);
+    
+    // Check for budget alerts after adding transaction
+    setTimeout(async () => {
+      await notificationService.checkBudgetAlerts();
+    }, 100);
+    
     return { ...newTransaction };
   }
 
