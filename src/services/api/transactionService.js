@@ -1,5 +1,5 @@
 import transactions from "@/services/mockData/transactions.json";
-import notificationService from '@/services/api/notificationService';
+import { notificationService } from '@/services/api/notificationService';
 class TransactionService {
   constructor() {
     this.data = [...transactions];
