@@ -4,6 +4,7 @@ import Sidebar from "@/components/organisms/Sidebar";
 import Dashboard from "@/components/pages/Dashboard";
 import Transactions from "@/components/pages/Transactions";
 import Budgets from "@/components/pages/Budgets";
+import CategoryManagement from "@/components/pages/CategoryManagement";
 import Goals from "@/components/pages/Goals";
 import Notifications from "@/components/pages/Notifications";
 import Reports from "@/components/pages/Reports";
@@ -20,6 +21,7 @@ const App = () => {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/budgets" element={<Budgets />} />
+                <Route path="/budgets/categories" element={<CategoryManagement />} />
                 <Route path="/goals" element={<Goals />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/reports" element={<Reports />} />
