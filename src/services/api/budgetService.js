@@ -80,4 +80,6 @@ class BudgetService {
   }
 }
 
-export default new BudgetService();
+const budgetServiceInstance = new BudgetService();
+export default budgetServiceInstance;
+export { budgetServiceInstance as budgetService };

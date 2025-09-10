@@ -1,4 +1,4 @@
-import { budgetService } from '@/services/api/budgetService';
+import budgetService from '@/services/api/budgetService';
 import { transactionService } from '@/services/api/transactionService';
 import { getCurrentMonthYear, calculateBudgetHealth, getBudgetStatus } from '@/utils/formatters';
 
