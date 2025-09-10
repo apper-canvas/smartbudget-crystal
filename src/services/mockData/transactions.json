@@ -1,0 +1,182 @@
+[
+  {
+    "Id": 1,
+    "type": "income",
+    "amount": 5000.00,
+    "category": "Salary",
+    "description": "Monthly salary",
+    "date": "2024-01-01",
+    "createdAt": "2024-01-01T08:00:00.000Z"
+  },
+  {
+    "Id": 2,
+    "type": "expense",
+    "amount": 1200.00,
+    "category": "Bills & Utilities",
+    "description": "Monthly rent payment",
+    "date": "2024-01-01",
+    "createdAt": "2024-01-01T09:00:00.000Z"
+  },
+  {
+    "Id": 3,
+    "type": "expense",
+    "amount": 350.00,
+    "category": "Groceries",
+    "description": "Weekly grocery shopping",
+    "date": "2024-01-02",
+    "createdAt": "2024-01-02T10:30:00.000Z"
+  },
+  {
+    "Id": 4,
+    "type": "expense",
+    "amount": 60.00,
+    "category": "Transportation",
+    "description": "Gas fill-up",
+    "date": "2024-01-03",
+    "createdAt": "2024-01-03T16:45:00.000Z"
+  },
+  {
+    "Id": 5,
+    "type": "expense",
+    "amount": 45.50,
+    "category": "Food & Dining",
+    "description": "Dinner at Italian restaurant",
+    "date": "2024-01-05",
+    "createdAt": "2024-01-05T19:30:00.000Z"
+  },
+  {
+    "Id": 6,
+    "type": "income",
+    "amount": 500.00,
+    "category": "Freelance",
+    "description": "Web design project",
+    "date": "2024-01-07",
+    "createdAt": "2024-01-07T14:00:00.000Z"
+  },
+  {
+    "Id": 7,
+    "type": "expense",
+    "amount": 120.00,
+    "category": "Healthcare",
+    "description": "Doctor appointment",
+    "date": "2024-01-08",
+    "createdAt": "2024-01-08T11:15:00.000Z"
+  },
+  {
+    "Id": 8,
+    "type": "expense",
+    "amount": 85.00,
+    "category": "Bills & Utilities",
+    "description": "Internet bill",
+    "date": "2024-01-10",
+    "createdAt": "2024-01-10T12:00:00.000Z"
+  },
+  {
+    "Id": 9,
+    "type": "expense",
+    "amount": 200.00,
+    "category": "Shopping",
+    "description": "New winter coat",
+    "date": "2024-01-12",
+    "createdAt": "2024-01-12T15:20:00.000Z"
+  },
+  {
+    "Id": 10,
+    "type": "expense",
+    "amount": 75.00,
+    "category": "Entertainment",
+    "description": "Movie tickets and snacks",
+    "date": "2024-01-14",
+    "createdAt": "2024-01-14T20:00:00.000Z"
+  },
+  {
+    "Id": 11,
+    "type": "expense",
+    "amount": 280.00,
+    "category": "Groceries",
+    "description": "Monthly Costco shopping",
+    "date": "2024-01-15",
+    "createdAt": "2024-01-15T13:45:00.000Z"
+  },
+  {
+    "Id": 12,
+    "type": "income",
+    "amount": 150.00,
+    "category": "Gift",
+    "description": "Birthday money from parents",
+    "date": "2024-01-16",
+    "createdAt": "2024-01-16T18:00:00.000Z"
+  },
+  {
+    "Id": 13,
+    "type": "expense",
+    "amount": 95.00,
+    "category": "Bills & Utilities",
+    "description": "Electric bill",
+    "date": "2024-01-18",
+    "createdAt": "2024-01-18T09:30:00.000Z"
+  },
+  {
+    "Id": 14,
+    "type": "expense",
+    "amount": 32.50,
+    "category": "Food & Dining",
+    "description": "Lunch with colleagues",
+    "date": "2024-01-20",
+    "createdAt": "2024-01-20T12:30:00.000Z"
+  },
+  {
+    "Id": 15,
+    "type": "expense",
+    "amount": 450.00,
+    "category": "Transportation",
+    "description": "Car maintenance and oil change",
+    "date": "2024-01-22",
+    "createdAt": "2024-01-22T10:00:00.000Z"
+  },
+  {
+    "Id": 16,
+    "type": "expense",
+    "amount": 180.00,
+    "category": "Shopping",
+    "description": "New work shoes",
+    "date": "2024-01-24",
+    "createdAt": "2024-01-24T16:15:00.000Z"
+  },
+  {
+    "Id": 17,
+    "type": "expense",
+    "amount": 65.00,
+    "category": "Entertainment",
+    "description": "Concert tickets",
+    "date": "2024-01-25",
+    "createdAt": "2024-01-25T14:00:00.000Z"
+  },
+  {
+    "Id": 18,
+    "type": "expense",
+    "amount": 120.00,
+    "category": "Groceries",
+    "description": "Weekly grocery shopping",
+    "date": "2024-01-27",
+    "createdAt": "2024-01-27T11:00:00.000Z"
+  },
+  {
+    "Id": 19,
+    "type": "expense",
+    "amount": 25.00,
+    "category": "Food & Dining",
+    "description": "Coffee shop visit",
+    "date": "2024-01-28",
+    "createdAt": "2024-01-28T08:15:00.000Z"
+  },
+  {
+    "Id": 20,
+    "type": "income",
+    "amount": 300.00,
+    "category": "Investment",
+    "description": "Stock dividend payment",
+    "date": "2024-01-30",
+    "createdAt": "2024-01-30T16:00:00.000Z"
+  }
+]
