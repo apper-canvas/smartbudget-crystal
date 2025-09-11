@@ -1,88 +1,307 @@
-import goals from "@/services/mockData/goals.json";
+// ApperClient integration for Goals using goal_c table
 
 class GoalService {
   constructor() {
-    this.data = [...goals];
-    this.delay = 300;
+    // Initialize ApperClient for database operations
+    const { ApperClient } = window.ApperSDK;
+    this.apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+    this.tableName = 'goal_c';
   }
 
   async getAll() {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    return [...this.data];
+    try {
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "target_amount_c"}},
+          {"field": {"Name": "current_amount_c"}},
+          {"field": {"Name": "deadline_c"}},
+          {"field": {"Name": "created_at_c"}},
+          {"field": {"Name": "Owner"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "CreatedBy"}},
+          {"field": {"Name": "ModifiedOn"}},
+          {"field": {"Name": "ModifiedBy"}}
+        ],
+        orderBy: [{"fieldName": "CreatedOn", "sorttype": "DESC"}],
+        pagingInfo: {"limit": 100, "offset": 0}
+      };
+      
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error("Error fetching goals:", response.message);
+        return [];
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching goals:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async getById(id) {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    const goal = this.data.find(item => item.Id === parseInt(id));
-    if (!goal) {
-      throw new Error(`Goal with Id ${id} not found`);
+    try {
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "target_amount_c"}},
+          {"field": {"Name": "current_amount_c"}},
+          {"field": {"Name": "deadline_c"}},
+          {"field": {"Name": "created_at_c"}},
+          {"field": {"Name": "Owner"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "CreatedBy"}},
+          {"field": {"Name": "ModifiedOn"}},
+          {"field": {"Name": "ModifiedBy"}}
+        ]
+      };
+      
+      const response = await this.apperClient.getRecordById(this.tableName, parseInt(id), params);
+      
+      if (!response.success) {
+        console.error(`Error fetching goal ${id}:`, response.message);
+        return null;
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching goal ${id}:`, error?.response?.data?.message || error);
+      return null;
     }
-    return { ...goal };
   }
 
   async create(goal) {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    
-    const maxId = Math.max(...this.data.map(item => item.Id), 0);
-    const newGoal = {
-      ...goal,
-      Id: maxId + 1,
-      createdAt: new Date().toISOString()
-    };
-    
-    this.data.push(newGoal);
-    return { ...newGoal };
+    try {
+      // Only include Updateable fields in create operation
+      const params = {
+        records: [{
+          Name: goal.Name || goal.name_c || '',
+          name_c: goal.name_c || goal.Name || '',
+          target_amount_c: parseFloat(goal.target_amount_c) || 0,
+          current_amount_c: parseFloat(goal.current_amount_c) || 0,
+          deadline_c: goal.deadline_c || new Date().toISOString().split('T')[0],
+          Tags: goal.Tags || ''
+        }]
+      };
+      
+      const response = await this.apperClient.createRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error("Error creating goal:", response.message);
+        return null;
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to create ${failed.length} goals:`, failed);
+          return null;
+        }
+        
+        return successful.length > 0 ? successful[0].data : null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error("Error creating goal:", error?.response?.data?.message || error);
+      return null;
+    }
   }
 
   async update(id, updatedGoal) {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    
-    const index = this.data.findIndex(item => item.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error(`Goal with Id ${id} not found`);
+    try {
+      // Only include Updateable fields in update operation
+      const params = {
+        records: [{
+          Id: parseInt(id),
+          ...(updatedGoal.Name !== undefined && { Name: updatedGoal.Name }),
+          ...(updatedGoal.name_c !== undefined && { name_c: updatedGoal.name_c }),
+          ...(updatedGoal.target_amount_c !== undefined && { target_amount_c: parseFloat(updatedGoal.target_amount_c) }),
+          ...(updatedGoal.current_amount_c !== undefined && { current_amount_c: parseFloat(updatedGoal.current_amount_c) }),
+          ...(updatedGoal.deadline_c !== undefined && { deadline_c: updatedGoal.deadline_c }),
+          ...(updatedGoal.Tags !== undefined && { Tags: updatedGoal.Tags })
+        }]
+      };
+      
+      const response = await this.apperClient.updateRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(`Error updating goal ${id}:`, response.message);
+        return null;
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to update ${failed.length} goals:`, failed);
+          return null;
+        }
+        
+        return successful.length > 0 ? successful[0].data : null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Error updating goal ${id}:`, error?.response?.data?.message || error);
+      return null;
     }
-    
-    this.data[index] = { ...this.data[index], ...updatedGoal, Id: parseInt(id) };
-    return { ...this.data[index] };
   }
 
   async delete(id) {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    
-    const index = this.data.findIndex(item => item.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error(`Goal with Id ${id} not found`);
+    try {
+      const params = { 
+        RecordIds: [parseInt(id)]
+      };
+      
+      const response = await this.apperClient.deleteRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(`Error deleting goal ${id}:`, response.message);
+        return false;
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to delete ${failed.length} goals:`, failed);
+          return false;
+        }
+        
+        return successful.length > 0;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(`Error deleting goal ${id}:`, error?.response?.data?.message || error);
+      return false;
     }
-    
-    const deletedGoal = { ...this.data[index] };
-    this.data.splice(index, 1);
-    return deletedGoal;
   }
 
-  // Additional utility methods
+  // Additional utility methods using database queries
   async getCompleted() {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    return this.data
-      .filter(goal => goal.currentAmount >= goal.targetAmount)
-      .map(goal => ({ ...goal }));
+    try {
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "target_amount_c"}},
+          {"field": {"Name": "current_amount_c"}},
+          {"field": {"Name": "deadline_c"}},
+          {"field": {"Name": "created_at_c"}}
+        ],
+        where: [
+          {
+            "FieldName": "current_amount_c",
+            "Operator": "GreaterThanOrEqualTo",
+            "Values": ["target_amount_c"]
+          }
+        ],
+        orderBy: [{"fieldName": "CreatedOn", "sorttype": "DESC"}],
+        pagingInfo: {"limit": 100, "offset": 0}
+      };
+      
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error("Error fetching completed goals:", response.message);
+        return [];
+      }
+      
+      // Filter completed goals on client side for more reliable results
+      return (response.data || []).filter(goal => 
+        parseFloat(goal.current_amount_c || 0) >= parseFloat(goal.target_amount_c || 0)
+      );
+    } catch (error) {
+      console.error("Error fetching completed goals:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async getActive() {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    return this.data
-      .filter(goal => goal.currentAmount < goal.targetAmount)
-      .map(goal => ({ ...goal }));
+    try {
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "target_amount_c"}},
+          {"field": {"Name": "current_amount_c"}},
+          {"field": {"Name": "deadline_c"}},
+          {"field": {"Name": "created_at_c"}}
+        ],
+        orderBy: [{"fieldName": "CreatedOn", "sorttype": "DESC"}],
+        pagingInfo: {"limit": 100, "offset": 0}
+      };
+      
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error("Error fetching active goals:", response.message);
+        return [];
+      }
+      
+      // Filter active goals on client side
+      return (response.data || []).filter(goal => 
+        parseFloat(goal.current_amount_c || 0) < parseFloat(goal.target_amount_c || 0)
+      );
+    } catch (error) {
+      console.error("Error fetching active goals:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async getOverdue() {
-    await new Promise(resolve => setTimeout(resolve, this.delay));
-    const now = new Date();
-    return this.data
-      .filter(goal => {
-        const deadline = new Date(goal.deadline);
-        return deadline < now && goal.currentAmount < goal.targetAmount;
-      })
-      .map(goal => ({ ...goal }));
+    try {
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "target_amount_c"}},
+          {"field": {"Name": "current_amount_c"}},
+          {"field": {"Name": "deadline_c"}},
+          {"field": {"Name": "created_at_c"}}
+        ],
+        orderBy: [{"fieldName": "deadline_c", "sorttype": "ASC"}],
+        pagingInfo: {"limit": 100, "offset": 0}
+      };
+      
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error("Error fetching overdue goals:", response.message);
+        return [];
+      }
+      
+      // Filter overdue goals on client side for accurate date comparison
+      const now = new Date();
+      return (response.data || []).filter(goal => {
+        if (!goal.deadline_c) return false;
+        const deadline = new Date(goal.deadline_c);
+        const currentAmount = parseFloat(goal.current_amount_c || 0);
+        const targetAmount = parseFloat(goal.target_amount_c || 0);
+        return deadline < now && currentAmount < targetAmount;
+      });
+    } catch (error) {
+      console.error("Error fetching overdue goals:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 }
 
