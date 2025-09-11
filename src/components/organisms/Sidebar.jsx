@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ApperIcon from "@/components/ApperIcon";
+import { AuthContext } from "../../App";
 
 const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -74,15 +75,27 @@ const navigation = [
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
-                <ApperIcon name="User" size={16} className="text-gray-600" />
+<div className="p-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+                  <ApperIcon name="User" size={16} className="text-gray-600" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-700">Personal Account</p>
+                  <p className="text-xs text-gray-500">Free Plan</p>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">Personal Account</p>
-                <p className="text-xs text-gray-500">Free Plan</p>
-              </div>
+              <button
+                onClick={() => {
+                  const { logout } = useContext(AuthContext);
+                  logout();
+                }}
+                className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                title="Logout"
+              >
+                <ApperIcon name="LogOut" size={16} />
+              </button>
             </div>
           </div>
         </div>
@@ -184,15 +197,27 @@ const navigation = [
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-200">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
-                      <ApperIcon name="User" size={16} className="text-gray-600" />
+<div className="p-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+                        <ApperIcon name="User" size={16} className="text-gray-600" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium text-gray-700">Personal Account</p>
+                        <p className="text-xs text-gray-500">Free Plan</p>
+                      </div>
                     </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-700">Personal Account</p>
-                      <p className="text-xs text-gray-500">Free Plan</p>
-                    </div>
+                    <button
+                      onClick={() => {
+                        const { logout } = useContext(AuthContext);
+                        logout();
+                      }}
+                      className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                      title="Logout"
+                    >
+                      <ApperIcon name="LogOut" size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
