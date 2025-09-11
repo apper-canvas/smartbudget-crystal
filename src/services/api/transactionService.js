@@ -128,16 +128,8 @@ class TransactionService {
         
         if (successful.length > 0) {
           const createdTransaction = successful[0].data;
-          
-          // Create notification
-          await notificationService.create({
-            title: "Transaction Created",
-            message: `New ${transactionData.type_c} transaction of $${transactionData.amount_c} has been added.`,
-            type: "success",
-            category: "transaction"
-          });
-          
-          // Check budget alerts after a short delay
+// Transaction created successfully
+        console.log(`New ${transactionData.type_c} transaction of $${transactionData.amount_c} has been added.`);
           setTimeout(async () => {
             await notificationService.checkBudgetAlerts();
           }, 100);
@@ -229,17 +221,8 @@ class TransactionService {
             if (record.message) throw new Error(record.message);
           });
         }
-        
-        if (successful.length > 0) {
-          await notificationService.create({
-            title: "Transaction Deleted",
-            message: "Transaction has been successfully deleted.",
-            type: "info",
-            category: "transaction"
-          });
-          
-          return true;
-        }
+// Transaction deleted successfully
+        console.log("Transaction has been successfully deleted.");
       }
       
       return false;
