@@ -23,13 +23,13 @@ const BankAccounts = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // Form state
+// Form state
   const [formData, setFormData] = useState({
     accountName: '',
     bankName: '',
     accountNumber: '',
     routingNumber: '',
-    accountType: 'checking',
+    accountType: 'Checking',
     balance: '',
     description: '',
     isDefault: false,
@@ -121,13 +121,13 @@ const BankAccounts = () => {
   };
 
   // Open form for new account
-  const openNewForm = useCallback(() => {
+const openNewForm = useCallback(() => {
     setFormData({
       accountName: '',
       bankName: '',
       accountNumber: '',
       routingNumber: '',
-      accountType: 'checking',
+      accountType: 'Checking',
       balance: '',
       description: '',
       isDefault: false,
@@ -155,7 +155,7 @@ const BankAccounts = () => {
   }, []);
 
   // Close form and reset state
-  const closeForm = useCallback(() => {
+const closeForm = useCallback(() => {
     setShowForm(false);
     setEditingAccount(null);
     setFormData({
@@ -163,7 +163,7 @@ const BankAccounts = () => {
       bankName: '',
       accountNumber: '',
       routingNumber: '',
-      accountType: 'checking',
+      accountType: 'Checking',
       balance: '',
       description: '',
       isDefault: false,

@@ -49,7 +49,7 @@ class BankAccountService {
   }
 
   // Transform UI format to database format for create/update
-  transformToDbFormat(uiData) {
+transformToDbFormat(uiData) {
     const dbData = {};
     
     // Map updateable fields only
@@ -57,7 +57,29 @@ class BankAccountService {
     if (uiData.tags !== undefined) dbData.Tags = uiData.tags;
     if (uiData.accountNumber !== undefined) dbData.account_number_c = uiData.accountNumber;
     if (uiData.bankName !== undefined) dbData.bank_name_c = uiData.bankName;
-    if (uiData.accountType !== undefined) dbData.account_type_c = uiData.accountType;
+    if (uiData.accountType !== undefined) {
+      // Normalize account type to match database picklist values
+      const accountType = uiData.accountType.toLowerCase();
+      switch (accountType) {
+        case 'checking':
+          dbData.account_type_c = 'Checking';
+          break;
+        case 'savings':
+          dbData.account_type_c = 'Savings';
+          break;
+        case 'money market':
+          dbData.account_type_c = 'Money Market';
+          break;
+        case 'cd':
+          dbData.account_type_c = 'CD';
+          break;
+        case 'other':
+          dbData.account_type_c = 'Other';
+          break;
+        default:
+          dbData.account_type_c = uiData.accountType; // Use as-is if already proper format
+      }
+    }
     if (uiData.routingNumber !== undefined) dbData.routing_number_c = uiData.routingNumber;
     if (uiData.currency !== undefined) dbData.currency_c = uiData.currency;
     if (uiData.balance !== undefined) dbData.balance_c = parseFloat(uiData.balance) || 0;
