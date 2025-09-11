@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import TransactionItem from "@/components/molecules/TransactionItem";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
