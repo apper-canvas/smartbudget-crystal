@@ -3,7 +3,7 @@ import Chart from "react-apexcharts";
 import Card from "@/components/atoms/Card";
 import Select from "@/components/atoms/Select";
 import ApperIcon from "@/components/ApperIcon";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import { getMonthName } from "@/utils/formatters";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
