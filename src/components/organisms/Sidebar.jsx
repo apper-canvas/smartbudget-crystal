@@ -7,7 +7,7 @@ import { AuthContext } from "../../App";
 const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
-
+  const { logout } = useContext(AuthContext);
 const navigation = [
     { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "Transactions", href: "/transactions", icon: "Receipt" },
@@ -86,11 +86,8 @@ const navigation = [
                   <p className="text-xs text-gray-500">Free Plan</p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  const { logout } = useContext(AuthContext);
-                  logout();
-                }}
+<button
+                onClick={logout}
                 className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
                 title="Logout"
               >
@@ -208,11 +205,8 @@ const navigation = [
                         <p className="text-xs text-gray-500">Free Plan</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        const { logout } = useContext(AuthContext);
-                        logout();
-                      }}
+<button
+                      onClick={logout}
                       className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
                       title="Logout"
                     >
