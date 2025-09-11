@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import Select from "@/components/atoms/Select";
 import SpendingChart from "@/components/organisms/SpendingChart";
 import TrendChart from "@/components/organisms/TrendChart";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import { formatCurrency, getCurrentMonthYear, getMonthName } from "@/utils/formatters";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
