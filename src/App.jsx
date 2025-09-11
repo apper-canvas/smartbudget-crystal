@@ -17,6 +17,7 @@ import Goals from "@/components/pages/Goals";
 import Budgets from "@/components/pages/Budgets";
 import Reports from "@/components/pages/Reports";
 import Transactions from "@/components/pages/Transactions";
+import RecurringTransactions from "@/components/pages/RecurringTransactions";
 import BankAccounts from "@/components/pages/BankAccounts";
 import PromptPassword from "@/components/pages/PromptPassword";
 // Create auth context
@@ -144,8 +145,9 @@ const App = () => {
             <main className="flex-1 lg:ml-0 overflow-auto">
               <div className="p-6">
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+<Route path="/" element={<Dashboard />} />
                   <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/recurring-transactions" element={<RecurringTransactions />} />
                   <Route path="/budgets" element={<Budgets />} />
                   <Route path="/budgets/categories" element={<CategoryManagement />} />
                   <Route path="/goals" element={<Goals />} />

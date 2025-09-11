@@ -1,5 +1,4 @@
 import { notificationService } from "@/services/api/notificationService";
-
 // Transaction service using ApperClient for database operations
 class TransactionService {
   constructor() {
@@ -94,7 +93,7 @@ class TransactionService {
       await this.delay(400);
       
       // Only include Updateable fields
-      const transactionData = {
+const transactionData = {
         Name: transaction.Name || transaction.description || 'Transaction',
         Tags: transaction.Tags || '',
         type_c: transaction.type_c || transaction.type,
@@ -102,6 +101,9 @@ class TransactionService {
         category_c: transaction.category_c || transaction.category,
         description_c: transaction.description_c || transaction.description || '',
         date_c: transaction.date_c || transaction.date,
+        frequency_c: transaction.frequency_c || transaction.frequency,
+        is_active_c: transaction.is_active_c !== undefined ? transaction.is_active_c : transaction.is_active,
+        next_date_c: transaction.next_date_c || transaction.next_date,
         created_at_c: new Date().toISOString()
       };
 
@@ -151,7 +153,7 @@ class TransactionService {
       await this.delay(350);
       
       // Only include Updateable fields plus Id
-      const transactionData = {
+const transactionData = {
         Id: parseInt(id),
         Name: updatedTransaction.Name || updatedTransaction.description || 'Transaction',
         Tags: updatedTransaction.Tags || '',
@@ -160,6 +162,9 @@ class TransactionService {
         category_c: updatedTransaction.category_c || updatedTransaction.category,
         description_c: updatedTransaction.description_c || updatedTransaction.description || '',
         date_c: updatedTransaction.date_c || updatedTransaction.date,
+        frequency_c: updatedTransaction.frequency_c || updatedTransaction.frequency,
+        is_active_c: updatedTransaction.is_active_c !== undefined ? updatedTransaction.is_active_c : updatedTransaction.is_active,
+        next_date_c: updatedTransaction.next_date_c || updatedTransaction.next_date,
         created_at_c: updatedTransaction.created_at_c || new Date().toISOString()
       };
 
@@ -523,7 +528,7 @@ class TransactionService {
   }
 
   // Transform database field names to UI property names
-  transformTransactionData(transaction) {
+transformTransactionData(transaction) {
     if (!transaction) return null;
     
     return {
@@ -533,8 +538,287 @@ class TransactionService {
       category: transaction.category_c || transaction.category,
       description: transaction.description_c || transaction.description || transaction.Name,
       date: transaction.date_c || transaction.date,
+      frequency: transaction.frequency_c || transaction.frequency,
+      is_active: transaction.is_active_c !== undefined ? transaction.is_active_c : transaction.is_active,
+      next_date: transaction.next_date_c || transaction.next_date,
       createdAt: transaction.created_at_c || transaction.createdAt || transaction.CreatedOn
     };
+  }
+
+  // Recurring transaction methods
+  async getAllRecurring() {
+    try {
+      await this.delay(300);
+      
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "type_c"}},
+          {"field": {"Name": "amount_c"}},
+          {"field": {"Name": "category_c"}},
+          {"field": {"Name": "description_c"}},
+          {"field": {"Name": "date_c"}},
+          {"field": {"Name": "frequency_c"}},
+          {"field": {"Name": "is_active_c"}},
+          {"field": {"Name": "next_date_c"}},
+          {"field": {"Name": "created_at_c"}}
+        ],
+        where: [{"FieldName": "frequency_c", "Operator": "HasValue", "Values": [""]}],
+        orderBy: [{"fieldName": "Id", "sorttype": "DESC"}]
+      };
+
+      const response = await apperClient.fetchRecords('transaction_c', params);
+      
+      if (!response?.data?.length) {
+        return [];
+      }
+
+      return response.data.map(transaction => this.transformTransactionData(transaction));
+    } catch (error) {
+      console.error('Error fetching recurring transactions:', error?.response?.data?.message || error);
+      throw error;
+    }
+  }
+
+  async createRecurring(transaction) {
+    try {
+      await this.delay(300);
+      
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const transactionData = {
+        Name: transaction.Name || transaction.description || 'Recurring Transaction',
+        Tags: transaction.Tags || '',
+        type_c: transaction.type_c || transaction.type,
+        amount_c: parseFloat(transaction.amount_c || transaction.amount),
+        category_c: transaction.category_c || transaction.category,
+        description_c: transaction.description_c || transaction.description || '',
+        date_c: transaction.date_c || transaction.date,
+        frequency_c: transaction.frequency_c || transaction.frequency,
+        is_active_c: transaction.is_active_c !== undefined ? transaction.is_active_c : transaction.is_active,
+        next_date_c: transaction.next_date_c || transaction.next_date,
+        created_at_c: new Date().toISOString()
+      };
+
+      const params = {
+        records: [transactionData]
+      };
+
+      const response = await apperClient.createRecord('transaction_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to create ${failed.length} recurring transactions:`, failed);
+          failed.forEach(record => {
+            if (record.message) throw new Error(record.message);
+          });
+        }
+        
+        if (successful.length > 0) {
+          await notificationService.create({
+            type: 'success',
+            title: 'Recurring Transaction Created',
+            message: `Successfully created recurring ${transactionData.type_c}: ${transactionData.description_c}`,
+            userId: 1
+          });
+          
+          return this.transformTransactionData(successful[0].data);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating recurring transaction:', error?.response?.data?.message || error);
+      throw error;
+    }
+  }
+
+  async updateRecurring(id, updatedTransaction) {
+    try {
+      await this.delay(300);
+      
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const transactionData = {
+        Id: parseInt(id),
+        Name: updatedTransaction.Name || updatedTransaction.description || 'Recurring Transaction',
+        Tags: updatedTransaction.Tags || '',
+        type_c: updatedTransaction.type_c || updatedTransaction.type,
+        amount_c: parseFloat(updatedTransaction.amount_c || updatedTransaction.amount),
+        category_c: updatedTransaction.category_c || updatedTransaction.category,
+        description_c: updatedTransaction.description_c || updatedTransaction.description || '',
+        date_c: updatedTransaction.date_c || updatedTransaction.date,
+        frequency_c: updatedTransaction.frequency_c || updatedTransaction.frequency,
+        is_active_c: updatedTransaction.is_active_c !== undefined ? updatedTransaction.is_active_c : updatedTransaction.is_active,
+        next_date_c: updatedTransaction.next_date_c || updatedTransaction.next_date,
+        created_at_c: updatedTransaction.created_at_c || new Date().toISOString()
+      };
+
+      const params = {
+        records: [transactionData]
+      };
+
+      const response = await apperClient.updateRecord('transaction_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to update ${failed.length} recurring transactions:`, failed);
+          failed.forEach(record => {
+            if (record.message) throw new Error(record.message);
+          });
+        }
+        
+        if (successful.length > 0) {
+          await notificationService.create({
+            type: 'info',
+            title: 'Recurring Transaction Updated',
+            message: `Successfully updated recurring ${transactionData.type_c}: ${transactionData.description_c}`,
+            userId: 1
+          });
+          
+          return this.transformTransactionData(successful[0].data);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating recurring transaction:', error?.response?.data?.message || error);
+      throw error;
+    }
+  }
+
+  async deleteRecurring(id) {
+    try {
+      await this.delay(300);
+      
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = { 
+        RecordIds: [parseInt(id)]
+      };
+
+      const response = await apperClient.deleteRecord('transaction_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to delete ${failed.length} recurring transactions:`, failed);
+          failed.forEach(record => {
+            if (record.message) throw new Error(record.message);
+          });
+        }
+        
+        if (successful.length > 0) {
+          await notificationService.create({
+            type: 'warning',
+            title: 'Recurring Transaction Deleted',
+            message: 'Recurring transaction has been successfully deleted',
+            userId: 1
+          });
+          
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error deleting recurring transaction:', error?.response?.data?.message || error);
+      throw error;
+    }
+  }
+
+  async toggleRecurringStatus(id, isActive) {
+    try {
+      await this.delay(300);
+      
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const transactionData = {
+        Id: parseInt(id),
+        is_active_c: isActive
+      };
+
+      const params = {
+        records: [transactionData]
+      };
+
+      const response = await apperClient.updateRecord('transaction_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to toggle ${failed.length} recurring transaction status:`, failed);
+          failed.forEach(record => {
+            if (record.message) throw new Error(record.message);
+          });
+        }
+        
+        if (successful.length > 0) {
+          await notificationService.create({
+            type: 'info',
+            title: `Recurring Transaction ${isActive ? 'Activated' : 'Paused'}`,
+            message: `Recurring transaction has been ${isActive ? 'activated' : 'paused'}`,
+            userId: 1
+          });
+          
+          return this.transformTransactionData(successful[0].data);
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling recurring transaction status:', error?.response?.data?.message || error);
+      throw error;
+    }
+}
   }
 
   delay(ms) {

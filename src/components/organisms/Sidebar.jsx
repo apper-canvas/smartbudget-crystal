@@ -11,6 +11,7 @@ const Sidebar = () => {
 const navigation = [
 { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "Transactions", href: "/transactions", icon: "Receipt" },
+    { name: "Recurring Transactions", href: "/recurring-transactions", icon: "Repeat" },
     { name: "Budgets", href: "/budgets", icon: "Target" },
     { name: "Category Settings", href: "/budgets/categories", icon: "Settings" },
     { name: "Bank Accounts", href: "/bank-accounts", icon: "CreditCard" },

@@ -1,26 +1,30 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import Card from "@/components/atoms/Card";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
-import Button from "@/components/atoms/Button";
+import { toast } from "react-toastify";
 import categoryService from "@/services/api/categoryService";
 import { generateId } from "@/utils/formatters";
-import { toast } from "react-toastify";
+import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import Input from "@/components/atoms/Input";
+import Card from "@/components/atoms/Card";
+import Select from "@/components/atoms/Select";
 
 const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
-    type: "expense",
+type: "expense",
     amount: "",
     category: "",
     description: "",
-    date: new Date().toISOString().split("T")[0]
+    date: new Date().toISOString().split("T")[0],
+    frequency: "monthly",
+    is_active: true,
+    next_date: new Date().toISOString().split("T")[0]
   });
-  const [categories, setCategories] = useState([]);
+const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
+  const [isRecurring, setIsRecurring] = useState(false);
+useEffect(() => {
     loadCategories();
     if (transaction) {
       setFormData({
@@ -28,11 +32,14 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
         amount: Math.abs(transaction.amount).toString(),
         category: transaction.category,
         description: transaction.description,
-        date: transaction.date
+        date: transaction.date,
+        frequency: transaction.frequency || "monthly",
+        is_active: transaction.is_active !== undefined ? transaction.is_active : true,
+        next_date: transaction.next_date || new Date().toISOString().split("T")[0]
       });
+      setIsRecurring(transaction.frequency !== undefined || transaction.next_date !== undefined);
     }
   }, [transaction]);
-
   const loadCategories = async () => {
     try {
       const allCategories = await categoryService.getAll();
@@ -80,12 +87,15 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
     setLoading(true);
     try {
       const transactionData = {
-        Id: transaction?.Id || Date.now(),
+Id: transaction?.Id || Date.now(),
         type: formData.type,
         amount: parseFloat(formData.amount),
         category: formData.category,
         description: formData.description.trim(),
         date: formData.date,
+        frequency: formData.frequency,
+        is_active: formData.is_active,
+        next_date: formData.next_date,
         createdAt: transaction?.createdAt || new Date().toISOString()
       };
 
@@ -94,11 +104,14 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
       // Reset form if creating new transaction
       if (!transaction) {
         setFormData({
-          type: "expense",
+type: "expense",
           amount: "",
           category: "",
           description: "",
-          date: new Date().toISOString().split("T")[0]
+          date: new Date().toISOString().split("T")[0],
+          frequency: "monthly",
+          is_active: true,
+          next_date: new Date().toISOString().split("T")[0]
         });
         setErrors({});
       }
@@ -120,7 +133,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
 
     // Reset category when type changes
     if (field === "type") {
-      setFormData(prev => ({ ...prev, category: "" }));
+setFormData(prev => ({ ...prev, category: "" }));
     }
   };
 
@@ -134,7 +147,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
           {transaction ? "Edit Transaction" : "Add New Transaction"}
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+<form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
               label="Type"
@@ -180,8 +193,7 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
               onChange={(e) => handleInputChange("date", e.target.value)}
               error={errors.date}
             />
-          </div>
-
+</div>
           <Input
             label="Description"
             placeholder="Enter transaction description"
@@ -189,6 +201,64 @@ const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
             onChange={(e) => handleInputChange("description", e.target.value)}
             error={errors.description}
           />
+
+          <div className="flex items-center gap-3 pt-4">
+            <input
+              type="checkbox"
+              id="recurring"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
+            />
+            <label htmlFor="recurring" className="text-sm font-medium text-gray-700">
+              Make this a recurring transaction
+            </label>
+          </div>
+
+          {isRecurring && (
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <ApperIcon name="Repeat" size={20} />
+                Recurring Settings
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                  label="Frequency"
+                  value={formData.frequency}
+                  onChange={(e) => handleInputChange("frequency", e.target.value)}
+                  error={errors.frequency}
+                  options={[
+                    { value: "daily", label: "Daily" },
+                    { value: "weekly", label: "Weekly" },
+                    { value: "monthly", label: "Monthly" },
+                    { value: "yearly", label: "Yearly" }
+                  ]}
+                />
+
+                <Input
+                  label="Next Occurrence Date"
+                  type="date"
+                  value={formData.next_date}
+                  onChange={(e) => handleInputChange("next_date", e.target.value)}
+                  error={errors.next_date}
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => handleInputChange("is_active", e.target.checked)}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
+                />
+                <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                  Start recurring transactions immediately
+                </label>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-3 pt-4">
             {onCancel && (
