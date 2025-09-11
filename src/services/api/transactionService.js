@@ -10,7 +10,8 @@ class TransactionService {
       apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
     });
     this.tableName = 'transaction_c';
-    this.delay = 300;
+// Async delay method for simulating API response times
+    this.delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async getAll() {
