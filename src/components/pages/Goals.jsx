@@ -36,10 +36,21 @@ const Goals = () => {
       setLoading(true);
       setError("");
       
-      const goalsData = await goalService.getAll();
+const goalsData = await goalService.getAll();
+      
+      // Transform database field names to UI property names
+      const transformedGoals = goalsData.map(goal => ({
+        Id: goal.Id,
+        name: goal.name_c || goal.Name || '',
+        targetAmount: parseFloat(goal.target_amount_c) || 0,
+        currentAmount: parseFloat(goal.current_amount_c) || 0,
+        deadline: goal.deadline_c || '',
+        createdAt: goal.created_at_c || goal.CreatedOn || '',
+        Tags: goal.Tags || ''
+      }));
       
       // Sort goals by deadline and completion status
-      const sortedGoals = goalsData.sort((a, b) => {
+      const sortedGoals = transformedGoals.sort((a, b) => {
         // Completed goals go to the end
         if (a.currentAmount >= a.targetAmount && b.currentAmount < b.targetAmount) return 1;
         if (b.currentAmount >= b.targetAmount && a.currentAmount < a.targetAmount) return -1;
@@ -93,14 +104,16 @@ const Goals = () => {
     
     if (!validateForm()) return;
     
-    try {
+try {
       const goalData = {
         Id: editingGoal?.Id || Date.now(),
-        name: formData.name.trim(),
-        targetAmount: parseFloat(formData.targetAmount),
-        currentAmount: parseFloat(formData.currentAmount) || 0,
-        deadline: formData.deadline,
-        createdAt: editingGoal?.createdAt || new Date().toISOString()
+        Name: formData.name.trim(),
+        name_c: formData.name.trim(),
+        target_amount_c: parseFloat(formData.targetAmount),
+        current_amount_c: parseFloat(formData.currentAmount) || 0,
+        deadline_c: formData.deadline,
+        created_at_c: editingGoal?.createdAt || new Date().toISOString(),
+        Tags: ''
       };
       
       if (editingGoal) {
@@ -161,9 +174,8 @@ const Goals = () => {
     }
 
     try {
-      const updatedGoal = {
-        ...selectedGoal,
-        currentAmount: selectedGoal.currentAmount + amount
+const updatedGoal = {
+        current_amount_c: selectedGoal.currentAmount + amount
       };
       
       await goalService.update(selectedGoal.Id, updatedGoal);
