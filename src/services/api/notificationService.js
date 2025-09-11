@@ -110,6 +110,32 @@ class NotificationService {
     await new Promise(resolve => setTimeout(resolve, this.delay));
     return { ...this.settings };
   }
+// Public method to create notifications - called by other services
+  async create(notificationData) {
+    try {
+      await this.delay(200);
+      
+      const notification = {
+        id: this.generateId(),
+        ...notificationData,
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        isRead: false
+      };
+      
+      // Get current notifications from storage
+      const existingNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+      existingNotifications.push(notification);
+      
+      // Save updated notifications
+      localStorage.setItem('notifications', JSON.stringify(existingNotifications));
+      
+      return notification;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  }
 
   generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
