@@ -8,37 +8,38 @@ import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
 import Card from "@/components/atoms/Card";
 import Select from "@/components/atoms/Select";
-
 const TransactionForm = ({ transaction, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
-type: "expense",
+const [formData, setFormData] = useState({
+    type: "expense",
     amount: "",
     category: "",
     description: "",
     date: new Date().toISOString().split("T")[0],
     frequency: "monthly",
-    is_active: true,
-    next_date: new Date().toISOString().split("T")[0]
+    next_due_date: new Date().toISOString().split("T")[0],
+    end_date: "",
+    is_active: true
   });
-const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isRecurring, setIsRecurring] = useState(false);
+const [isRecurringForm, setIsRecurringForm] = useState(false);
+
 useEffect(() => {
     loadCategories();
     if (transaction) {
       setFormData({
         type: transaction.type,
-        amount: Math.abs(transaction.amount).toString(),
+        amount: Math.abs(transaction.amount || 0).toString(),
         category: transaction.category,
         description: transaction.description,
         date: transaction.date,
         frequency: transaction.frequency || "monthly",
-        is_active: transaction.is_active !== undefined ? transaction.is_active : true,
-        next_date: transaction.next_date || new Date().toISOString().split("T")[0]
+        next_due_date: transaction.next_due_date || transaction.next_date || new Date().toISOString().split("T")[0],
+        end_date: transaction.end_date || "",
+        is_active: transaction.is_active !== undefined ? transaction.is_active : true
       });
-      setIsRecurring(transaction.frequency !== undefined || transaction.next_date !== undefined);
-    }
+}
   }, [transaction]);
   const loadCategories = async () => {
     try {
@@ -86,16 +87,29 @@ useEffect(() => {
 
     setLoading(true);
     try {
-      const transactionData = {
-Id: transaction?.Id || Date.now(),
+const transactionData = {
+        Id: transaction?.Id || Date.now(),
         type: formData.type,
+        type_c: formData.type,
         amount: parseFloat(formData.amount),
+        amount_c: parseFloat(formData.amount),
         category: formData.category,
+        category_c: formData.category,
         description: formData.description.trim(),
+        description_c: formData.description,
         date: formData.date,
-        frequency: formData.frequency,
-        is_active: formData.is_active,
-        next_date: formData.next_date,
+        date_c: formData.date,
+        frequency: isRecurringForm ? formData.frequency : undefined,
+        frequency_c: isRecurringForm ? formData.frequency : undefined,
+        next_due_date: isRecurringForm ? formData.next_due_date : undefined,
+        next_due_date_c: isRecurringForm ? formData.next_due_date : undefined,
+        end_date: isRecurringForm && formData.end_date ? formData.end_date : undefined,
+        end_date_c: isRecurringForm && formData.end_date ? formData.end_date : undefined,
+        is_active: isRecurringForm ? formData.is_active : undefined,
+        is_active_c: isRecurringForm ? formData.is_active : undefined,
+        Name: formData.description || 'Transaction',
+        Tags: '',
+        created_at_c: new Date().toISOString(),
         createdAt: transaction?.createdAt || new Date().toISOString()
       };
 
@@ -103,15 +117,16 @@ Id: transaction?.Id || Date.now(),
       
       // Reset form if creating new transaction
       if (!transaction) {
-        setFormData({
-type: "expense",
+setFormData({
+          type: "expense",
           amount: "",
           category: "",
           description: "",
           date: new Date().toISOString().split("T")[0],
           frequency: "monthly",
-          is_active: true,
-          next_date: new Date().toISOString().split("T")[0]
+          next_due_date: new Date().toISOString().split("T")[0],
+          end_date: "",
+          is_active: true
         });
         setErrors({});
       }
@@ -132,8 +147,8 @@ type: "expense",
     }
 
     // Reset category when type changes
-    if (field === "type") {
-setFormData(prev => ({ ...prev, category: "" }));
+if (field === "type") {
+      setFormData(prev => ({ ...prev, category: "" }));
     }
   };
 
@@ -206,8 +221,8 @@ setFormData(prev => ({ ...prev, category: "" }));
             <input
               type="checkbox"
               id="recurring"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
+checked={isRecurringForm}
+              onChange={(e) => setIsRecurringForm(e.target.checked)}
               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary focus:ring-2"
             />
             <label htmlFor="recurring" className="text-sm font-medium text-gray-700">
@@ -215,7 +230,7 @@ setFormData(prev => ({ ...prev, category: "" }));
             </label>
           </div>
 
-          {isRecurring && (
+{isRecurringForm && (
             <div className="space-y-4 pt-4 border-t border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <ApperIcon name="Repeat" size={20} />
@@ -239,9 +254,9 @@ setFormData(prev => ({ ...prev, category: "" }));
                 <Input
                   label="Next Occurrence Date"
                   type="date"
-                  value={formData.next_date}
-                  onChange={(e) => handleInputChange("next_date", e.target.value)}
-                  error={errors.next_date}
+value={formData.next_due_date}
+                  onChange={(e) => handleInputChange("next_due_date", e.target.value)}
+                  error={errors.next_due_date}
                 />
               </div>
 

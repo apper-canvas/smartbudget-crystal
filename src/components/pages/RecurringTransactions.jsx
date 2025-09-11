@@ -250,7 +250,7 @@ const RecurringTransactions = () => {
         />
       </motion.div>
 
-      {showForm && (
+{showForm && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -259,7 +259,25 @@ const RecurringTransactions = () => {
         >
           <TransactionForm
             transaction={editingTransaction}
-            onSubmit={handleSubmitRecurring}
+            onSubmit={async (transactionData) => {
+              try {
+                setLoading(true);
+                if (editingTransaction) {
+                  await transactionService.updateRecurring(editingTransaction.Id, transactionData);
+                  toast.success('Recurring transaction updated successfully');
+                } else {
+                  await transactionService.createRecurring(transactionData);
+                  toast.success('Recurring transaction created successfully');
+                }
+                await loadRecurringTransactions();
+                handleCancelForm();
+              } catch (error) {
+                console.error('Error saving recurring transaction:', error);
+                toast.error(error.message || 'Failed to save recurring transaction');
+              } finally {
+                setLoading(false);
+              }
+            }}
             onCancel={handleCancelForm}
             isRecurring={true}
           />
