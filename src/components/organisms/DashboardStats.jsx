@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import StatCard from "@/components/molecules/StatCard";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import budgetService from "@/services/api/budgetService";
 import goalService from "@/services/api/goalService";
 import { getCurrentMonthYear, formatCurrency } from "@/utils/formatters";
