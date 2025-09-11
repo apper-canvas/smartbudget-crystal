@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Chart from "react-apexcharts";
 import Card from "@/components/atoms/Card";
 import ApperIcon from "@/components/ApperIcon";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import { getCurrentMonthYear } from "@/utils/formatters";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
