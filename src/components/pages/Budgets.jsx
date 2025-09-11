@@ -7,7 +7,7 @@ import Card from "@/components/atoms/Card";
 import BudgetCard from "@/components/molecules/BudgetCard";
 import budgetService from "@/services/api/budgetService";
 import categoryService from "@/services/api/categoryService";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import { getCurrentMonthYear, getMonthName } from "@/utils/formatters";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
