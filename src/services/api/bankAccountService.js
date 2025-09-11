@@ -1,24 +1,104 @@
-import mockData from '@/services/mockData/bankAccounts.json';
-
-// Bank Account service using mock data for development
+// Bank Account service using ApperClient for database integration
 class BankAccountService {
   constructor() {
-    // Store mock data in memory
-    this.accounts = [...mockData];
-    // Async delay method for simulating API response times
-    this.delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    // Initialize ApperClient for database operations
+    const { ApperClient } = window.ApperSDK;
+    this.apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+    });
+    
+    // Database table name for bank accounts
+    this.tableName = 'bank_account_c';
+    
+    // Define updateable fields for create/update operations (excluding System fields)
+    this.updateableFields = [
+      'Name',
+      'Tags', 
+      'account_number_c',
+      'bank_name_c',
+      'account_type_c',
+      'routing_number_c',
+      'currency_c',
+      'balance_c',
+      'iban_c',
+      'swift_code_c'
+    ];
+  }
+
+  // Get all bank accounts
+// Transform database record to UI format for compatibility
+  transformToUIFormat(record) {
+    return {
+      Id: record.Id,
+      accountName: record.Name || '',
+      bankName: record.bank_name_c || '',
+      accountNumber: record.account_number_c || '',
+      routingNumber: record.routing_number_c || '',
+      accountType: record.account_type_c || 'Checking',
+      balance: parseFloat(record.balance_c) || 0,
+      currency: record.currency_c || 'USD',
+      description: record.Name || '', // Using Name as description for compatibility
+      iban: record.iban_c || '',
+      swiftCode: record.swift_code_c || '',
+      // Business logic fields (not stored in database)
+      isActive: true, // Assume active if record exists
+      isDefault: false, // Handle as business logic if needed
+      lastUpdated: record.ModifiedOn || record.CreatedOn || new Date().toISOString()
+    };
+  }
+
+  // Transform UI format to database format for create/update
+  transformToDbFormat(uiData) {
+    const dbData = {};
+    
+    // Map updateable fields only
+    if (uiData.accountName !== undefined) dbData.Name = uiData.accountName;
+    if (uiData.tags !== undefined) dbData.Tags = uiData.tags;
+    if (uiData.accountNumber !== undefined) dbData.account_number_c = uiData.accountNumber;
+    if (uiData.bankName !== undefined) dbData.bank_name_c = uiData.bankName;
+    if (uiData.accountType !== undefined) dbData.account_type_c = uiData.accountType;
+    if (uiData.routingNumber !== undefined) dbData.routing_number_c = uiData.routingNumber;
+    if (uiData.currency !== undefined) dbData.currency_c = uiData.currency;
+    if (uiData.balance !== undefined) dbData.balance_c = parseFloat(uiData.balance) || 0;
+    if (uiData.iban !== undefined) dbData.iban_c = uiData.iban;
+    if (uiData.swiftCode !== undefined) dbData.swift_code_c = uiData.swiftCode;
+    
+    return dbData;
   }
 
   // Get all bank accounts
   async getAll() {
-    await this.delay(300);
     try {
-      return [...this.accounts].sort((a, b) => {
-        // Sort by default account first, then by account name
-        if (a.isDefault && !b.isDefault) return -1;
-        if (!a.isDefault && b.isDefault) return 1;
-        return a.accountName.localeCompare(b.accountName);
-      });
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "account_number_c"}},
+          {"field": {"Name": "bank_name_c"}},
+          {"field": {"Name": "account_type_c"}},
+          {"field": {"Name": "routing_number_c"}},
+          {"field": {"Name": "currency_c"}},
+          {"field": {"Name": "balance_c"}},
+          {"field": {"Name": "iban_c"}},
+          {"field": {"Name": "swift_code_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ],
+        orderBy: [{"fieldName": "Name", "sorttype": "ASC"}]
+      };
+
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error('Failed to fetch bank accounts:', response.message);
+        throw new Error(response.message);
+      }
+
+      const accounts = (response.data || []).map(record => this.transformToUIFormat(record));
+      
+      // Sort by account name for UI consistency
+      return accounts.sort((a, b) => a.accountName.localeCompare(b.accountName));
     } catch (error) {
       console.error('Error fetching bank accounts:', error);
       throw new Error('Failed to fetch bank accounts');
@@ -27,16 +107,31 @@ class BankAccountService {
 
   // Get bank account by ID
   async getById(id) {
-    await this.delay(200);
     try {
-      const accountId = parseInt(id);
-      const account = this.accounts.find(acc => acc.Id === accountId);
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "account_number_c"}},
+          {"field": {"Name": "bank_name_c"}},
+          {"field": {"Name": "account_type_c"}},
+          {"field": {"Name": "routing_number_c"}},
+          {"field": {"Name": "currency_c"}},
+          {"field": {"Name": "balance_c"}},
+          {"field": {"Name": "iban_c"}},
+          {"field": {"Name": "swift_code_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ]
+      };
+
+      const response = await this.apperClient.getRecordById(this.tableName, parseInt(id), params);
       
-      if (!account) {
+      if (!response.success || !response.data) {
         throw new Error(`Bank account with ID ${id} not found`);
       }
-      
-      return { ...account };
+
+      return this.transformToUIFormat(response.data);
     } catch (error) {
       console.error(`Error fetching bank account ${id}:`, error);
       throw error;
@@ -45,44 +140,42 @@ class BankAccountService {
 
   // Create new bank account
   async create(accountData) {
-    await this.delay(400);
     try {
       // Validate required fields
       if (!accountData.accountName || !accountData.bankName || !accountData.accountType) {
         throw new Error('Account name, bank name, and account type are required');
       }
 
-      // Generate new ID
-      const newId = Math.max(...this.accounts.map(acc => acc.Id), 0) + 1;
+      // Transform to database format
+      const dbData = this.transformToDbFormat(accountData);
       
-      // Create new account object
-      const newAccount = {
-        Id: newId,
-        accountName: accountData.accountName,
-        bankName: accountData.bankName,
-        accountNumber: accountData.accountNumber || `****${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-        routingNumber: accountData.routingNumber || '',
-        accountType: accountData.accountType,
-        balance: parseFloat(accountData.balance) || 0,
-        currency: accountData.currency || 'USD',
-        isActive: accountData.isActive !== false,
-        isDefault: accountData.isDefault === true,
-        lastUpdated: new Date().toISOString(),
-        description: accountData.description || ''
+      const params = {
+        records: [dbData]
       };
 
-      // If setting as default, remove default from other accounts
-      if (newAccount.isDefault) {
-        this.accounts = this.accounts.map(acc => ({
-          ...acc,
-          isDefault: false
-        }));
+      const response = await this.apperClient.createRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error('Failed to create bank account:', response.message);
+        throw new Error(response.message);
       }
 
-      // Add to accounts array
-      this.accounts.push(newAccount);
-      
-      return { ...newAccount };
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to create bank account:`, failed);
+          const errorMessage = failed[0].message || 'Failed to create bank account';
+          throw new Error(errorMessage);
+        }
+
+        const successful = response.results.filter(r => r.success);
+        if (successful.length > 0) {
+          return this.transformToUIFormat(successful[0].data);
+        }
+      }
+
+      throw new Error('Failed to create bank account');
     } catch (error) {
       console.error('Error creating bank account:', error);
       throw error;
@@ -91,33 +184,38 @@ class BankAccountService {
 
   // Update existing bank account
   async update(id, updatedData) {
-    await this.delay(350);
     try {
-      const accountId = parseInt(id);
-      const accountIndex = this.accounts.findIndex(acc => acc.Id === accountId);
-      
-      if (accountIndex === -1) {
-        throw new Error(`Bank account with ID ${id} not found`);
-      }
+      // Transform to database format
+      const dbData = this.transformToDbFormat(updatedData);
+      dbData.Id = parseInt(id); // Ensure ID is included
 
-      // If setting as default, remove default from other accounts
-      if (updatedData.isDefault === true) {
-        this.accounts = this.accounts.map(acc => ({
-          ...acc,
-          isDefault: acc.Id === accountId ? true : false
-        }));
-      }
-
-      // Update the account
-      this.accounts[accountIndex] = {
-        ...this.accounts[accountIndex],
-        ...updatedData,
-        Id: accountId, // Ensure ID doesn't change
-        lastUpdated: new Date().toISOString(),
-        balance: updatedData.balance !== undefined ? parseFloat(updatedData.balance) : this.accounts[accountIndex].balance
+      const params = {
+        records: [dbData]
       };
 
-      return { ...this.accounts[accountIndex] };
+      const response = await this.apperClient.updateRecord(this.tableName, params);
+      
+      if (!response.success) {
+        console.error('Failed to update bank account:', response.message);
+        throw new Error(response.message);
+      }
+
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to update bank account:`, failed);
+          const errorMessage = failed[0].message || 'Failed to update bank account';
+          throw new Error(errorMessage);
+        }
+
+        const successful = response.results.filter(r => r.success);
+        if (successful.length > 0) {
+          return this.transformToUIFormat(successful[0].data);
+        }
+      }
+
+      throw new Error('Failed to update bank account');
     } catch (error) {
       console.error(`Error updating bank account ${id}:`, error);
       throw error;
@@ -126,28 +224,28 @@ class BankAccountService {
 
   // Delete bank account
   async delete(id) {
-    await this.delay(250);
     try {
-      const accountId = parseInt(id);
-      const accountIndex = this.accounts.findIndex(acc => acc.Id === accountId);
+      const params = {
+        RecordIds: [parseInt(id)]
+      };
+
+      const response = await this.apperClient.deleteRecord(this.tableName, params);
       
-      if (accountIndex === -1) {
-        throw new Error(`Bank account with ID ${id} not found`);
+      if (!response.success) {
+        console.error('Failed to delete bank account:', response.message);
+        throw new Error(response.message);
       }
 
-      // Don't allow deletion of default account if there are other active accounts
-      const account = this.accounts[accountIndex];
-      const otherActiveAccounts = this.accounts.filter(acc => 
-        acc.Id !== accountId && acc.isActive
-      );
-
-      if (account.isDefault && otherActiveAccounts.length > 0) {
-        throw new Error('Cannot delete default account. Please set another account as default first.');
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to delete bank account:`, failed);
+          const errorMessage = failed[0].message || 'Failed to delete bank account';
+          throw new Error(errorMessage);
+        }
       }
 
-      // Remove from accounts array
-      this.accounts.splice(accountIndex, 1);
-      
       return { success: true };
     } catch (error) {
       console.error(`Error deleting bank account ${id}:`, error);
@@ -157,45 +255,48 @@ class BankAccountService {
 
   // Get accounts by type
   async getByType(accountType) {
-    await this.delay(200);
     try {
-      const filteredAccounts = this.accounts
-        .filter(acc => acc.accountType === accountType && acc.isActive)
-        .sort((a, b) => a.accountName.localeCompare(b.accountName));
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "account_number_c"}},
+          {"field": {"Name": "bank_name_c"}},
+          {"field": {"Name": "account_type_c"}},
+          {"field": {"Name": "routing_number_c"}},
+          {"field": {"Name": "currency_c"}},
+          {"field": {"Name": "balance_c"}},
+          {"field": {"Name": "iban_c"}},
+          {"field": {"Name": "swift_code_c"}}
+        ],
+        where: [{"FieldName": "account_type_c", "Operator": "EqualTo", "Values": [accountType]}],
+        orderBy: [{"fieldName": "Name", "sorttype": "ASC"}]
+      };
+
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
       
-      return [...filteredAccounts];
+      if (!response.success) {
+        console.error(`Failed to fetch ${accountType} accounts:`, response.message);
+        throw new Error(`Failed to fetch ${accountType} accounts`);
+      }
+
+      return (response.data || []).map(record => this.transformToUIFormat(record));
     } catch (error) {
       console.error(`Error fetching ${accountType} accounts:`, error);
       throw new Error(`Failed to fetch ${accountType} accounts`);
     }
   }
 
-  // Get active accounts only
+  // Get active accounts (all accounts for now, as isActive is not stored in database)
   async getActive() {
-    await this.delay(200);
-    try {
-      const activeAccounts = this.accounts
-        .filter(acc => acc.isActive)
-        .sort((a, b) => {
-          // Sort by default first, then by name
-          if (a.isDefault && !b.isDefault) return -1;
-          if (!a.isDefault && b.isDefault) return 1;
-          return a.accountName.localeCompare(b.accountName);
-        });
-      
-      return [...activeAccounts];
-    } catch (error) {
-      console.error('Error fetching active accounts:', error);
-      throw new Error('Failed to fetch active accounts');
-    }
+    return this.getAll();
   }
 
-  // Get total balance across all active accounts
+  // Get total balance across all accounts
   async getTotalBalance() {
-    await this.delay(150);
     try {
-      const activeAccounts = this.accounts.filter(acc => acc.isActive);
-      const total = activeAccounts.reduce((sum, acc) => {
+      const accounts = await this.getAll();
+      const total = accounts.reduce((sum, acc) => {
         // Only include positive balances (exclude credit card debt)
         return sum + (acc.balance > 0 ? acc.balance : 0);
       }, 0);
@@ -209,20 +310,50 @@ class BankAccountService {
 
   // Search accounts by name or bank
   async search(query) {
-    await this.delay(200);
     try {
       if (!query || query.trim() === '') {
         return await this.getAll();
       }
 
-      const searchQuery = query.toLowerCase().trim();
-      const results = this.accounts.filter(acc => 
-        acc.accountName.toLowerCase().includes(searchQuery) ||
-        acc.bankName.toLowerCase().includes(searchQuery) ||
-        acc.description.toLowerCase().includes(searchQuery)
-      );
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "Tags"}},
+          {"field": {"Name": "account_number_c"}},
+          {"field": {"Name": "bank_name_c"}},
+          {"field": {"Name": "account_type_c"}},
+          {"field": {"Name": "routing_number_c"}},
+          {"field": {"Name": "currency_c"}},
+          {"field": {"Name": "balance_c"}},
+          {"field": {"Name": "iban_c"}},
+          {"field": {"Name": "swift_code_c"}}
+        ],
+        whereGroups: [{
+          "operator": "OR",
+          "subGroups": [
+            {
+              "conditions": [
+                {"fieldName": "Name", "operator": "Contains", "values": [query]}
+              ]
+            },
+            {
+              "conditions": [
+                {"fieldName": "bank_name_c", "operator": "Contains", "values": [query]}
+              ]
+            }
+          ]
+        }],
+        orderBy: [{"fieldName": "Name", "sorttype": "ASC"}]
+      };
 
-      return [...results].sort((a, b) => a.accountName.localeCompare(b.accountName));
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error('Failed to search bank accounts:', response.message);
+        throw new Error('Failed to search bank accounts');
+      }
+
+      return (response.data || []).map(record => this.transformToUIFormat(record));
     } catch (error) {
       console.error('Error searching bank accounts:', error);
       throw new Error('Failed to search bank accounts');
@@ -231,10 +362,9 @@ class BankAccountService {
 
   // Get account types summary
   async getAccountTypesSummary() {
-    await this.delay(200);
     try {
-      const activeAccounts = this.accounts.filter(acc => acc.isActive);
-      const summary = activeAccounts.reduce((acc, account) => {
+      const accounts = await this.getAll();
+      const summary = accounts.reduce((acc, account) => {
         const type = account.accountType;
         if (!acc[type]) {
           acc[type] = { count: 0, totalBalance: 0 };
@@ -250,6 +380,7 @@ class BankAccountService {
       throw new Error('Failed to get account types summary');
     }
   }
+
 }
 
 // Create and export singleton instance

@@ -280,7 +280,7 @@ const BankAccounts = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredAccounts.map((account) => (
             <motion.div
-              key={account.Id}
+key={account.Id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
