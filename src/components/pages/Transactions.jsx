@@ -4,7 +4,7 @@ import Button from "@/components/atoms/Button";
 import TransactionForm from "@/components/organisms/TransactionForm";
 import TransactionItem from "@/components/molecules/TransactionItem";
 import SearchFilter from "@/components/molecules/SearchFilter";
-import transactionService from "@/services/api/transactionService";
+import { transactionService } from "@/services/api/transactionService";
 import categoryService from "@/services/api/categoryService";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
