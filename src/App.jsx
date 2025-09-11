@@ -1,24 +1,24 @@
-import { createContext, useEffect, useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { ToastContainer } from 'react-toastify';
-import { setUser, clearUser } from './store/userSlice';
-import Login from '@/components/pages/Login';
-import Signup from '@/components/pages/Signup';
-import Callback from '@/components/pages/Callback';
-import ErrorPage from '@/components/pages/ErrorPage';
-import ResetPassword from '@/components/pages/ResetPassword';
-import PromptPassword from '@/components/pages/PromptPassword';
-import Sidebar from "@/components/organisms/Sidebar";
-import Dashboard from "@/components/pages/Dashboard";
-import Transactions from "@/components/pages/Transactions";
-import Budgets from "@/components/pages/Budgets";
-import CategoryManagement from "@/components/pages/CategoryManagement";
-import Goals from "@/components/pages/Goals";
-import Notifications from "@/components/pages/Notifications";
-import Reports from "@/components/pages/Reports";
+import React, { createContext, useEffect, useState } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { ToastContainer } from "react-toastify";
+import { clearUser, setUser } from "@/store/userSlice";
 import NotificationBar from "@/components/molecules/NotificationBar";
-
+import Sidebar from "@/components/organisms/Sidebar";
+import Signup from "@/components/pages/Signup";
+import Callback from "@/components/pages/Callback";
+import ResetPassword from "@/components/pages/ResetPassword";
+import ErrorPage from "@/components/pages/ErrorPage";
+import CategoryManagement from "@/components/pages/CategoryManagement";
+import Notifications from "@/components/pages/Notifications";
+import Dashboard from "@/components/pages/Dashboard";
+import Login from "@/components/pages/Login";
+import Goals from "@/components/pages/Goals";
+import Budgets from "@/components/pages/Budgets";
+import Reports from "@/components/pages/Reports";
+import Transactions from "@/components/pages/Transactions";
+import BankAccounts from "@/components/pages/BankAccounts";
+import PromptPassword from "@/components/pages/PromptPassword";
 // Create auth context
 export const AuthContext = createContext(null);
 
@@ -151,6 +151,7 @@ const App = () => {
                   <Route path="/goals" element={<Goals />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/reports" element={<Reports />} />
+<Route path="/bank-accounts" element={<BankAccounts />} />
                 </Routes>
               </div>
             </main>

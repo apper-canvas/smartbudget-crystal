@@ -9,10 +9,11 @@ const Sidebar = () => {
   const location = useLocation();
   const { logout } = useContext(AuthContext);
 const navigation = [
-    { name: "Dashboard", href: "/", icon: "LayoutDashboard" },
+{ name: "Dashboard", href: "/", icon: "LayoutDashboard" },
     { name: "Transactions", href: "/transactions", icon: "Receipt" },
     { name: "Budgets", href: "/budgets", icon: "Target" },
     { name: "Category Settings", href: "/budgets/categories", icon: "Settings" },
+    { name: "Bank Accounts", href: "/bank-accounts", icon: "CreditCard" },
     { name: "Goals", href: "/goals", icon: "Trophy" },
     { name: "Notifications", href: "/notifications", icon: "Bell" },
     { name: "Reports", href: "/reports", icon: "BarChart3" },
